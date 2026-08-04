@@ -356,6 +356,38 @@
     },
     {
       "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.output.ask_transfer_buttons }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "fda72a91-15f3-4949-af34-39762ce26ed8",
+      "name": "IF محتاج زرار تحويل",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        160
+      ]
+    },
+    {
+      "parameters": {
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
@@ -767,7 +799,7 @@
         ],
         [
           {
-            "node": "IF يحتاج حفظ بيانات",
+            "node": "IF محتاج زرار تحويل",
             "type": "main",
             "index": 0
           }
@@ -776,6 +808,24 @@
     },
     "إرسال صورة الأسعار": {
       "main": [
+        [
+          {
+            "node": "IF محتاج زرار تحويل",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF محتاج زرار تحويل": {
+      "main": [
+        [
+          {
+            "node": "IF يحتاج حفظ بيانات",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "IF يحتاج حفظ بيانات",
