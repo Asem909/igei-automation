@@ -3,24 +3,37 @@
   "nodes": [
     {
       "parameters": {
+        "jsCode": "// Safe Merge: دمج بيانات العميل الجديدة (من AI) مع البيانات القديمة (من الشيت)\n// القاعدة: أي قيمة جديدة فاضية/placeholder -> نحتفظ بالقديمة. غير كده -> نستخدم الجديدة.\n\nconst newData = $('Code in JavaScript1').item.json.customer || {};\n\nconst oldRows = $('فحص العميل1').all().filter(r => Object.keys(r.json).length > 0);\nconst oldData = oldRows.length > 0 ? oldRows[0].json : {};\n\nfunction isEmpty(v) {\n  if (v === undefined || v === null) return true;\n  const s = String(v).trim();\n  return s === '' || s === '-' || s === 'null' || s === 'undefined';\n}\n\n// خريطة: اسم الحقل عند الـ AI => اسم العمود المقابل في شيت العملاء (للقيم القديمة)\nconst fieldMap = {\n  name:              'اسم العميل',\n  governorate:       'المحافظة',\n  area:              'المنطقة',\n  notes:             'الملاحظات',\n  requested_product: 'المنتج المطلوب',\n  customer_type:     'الحالة'\n};\n\nconst merged = {};\n\nfor (const [aiField, sheetColumn] of Object.entries(fieldMap)) {\n  const newVal = newData[aiField];\n  const oldVal = oldData[sheetColumn];\n\n  if (!isEmpty(newVal)) {\n    // AI استخرج قيمة حقيقية (سواء بيانة جديدة أو تعديل صريح من العميل) -> خدها\n    merged[aiField] = newVal;\n  } else if (!isEmpty(oldVal)) {\n    // الجديد فاضي/placeholder -> احتفظ بالقديم\n    merged[aiField] = oldVal;\n  } else {\n    // مفيش قديم ولا جديد\n    merged[aiField] = '-';\n  }\n}\n\nreturn [{ json: merged }];\n"
+      },
+      "id": "fee6817b-63a8-49d2-b3df-754d642cf5ed",
+      "name": "Safe Merge بيانات العميل",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        1008
+      ]
+    },
+    {
+      "parameters": {
         "updates": [
           "messages"
         ],
         "options": {}
       },
-      "id": "dad6948f-fd8d-4c1c-84c5-76b36c09497f",
-      "name": "استقبال رسالة واتساب",
+      "id": "71446e2c-cce4-4660-afd3-d8db80289741",
+      "name": "استقبال رسالة واتساب1",
       "type": "n8n-nodes-base.whatsAppTrigger",
       "typeVersion": 1,
       "position": [
-        0,
-        304
+        -1184,
+        1008
       ],
       "webhookId": "6909d6de-a97f-444b-a4b8-c4302ff293a7",
       "credentials": {
         "whatsAppTriggerApi": {
-          "id": "cZ7SvDTSd7NMtoZQ",
-          "name": "Bot-28-7"
+          "id": "vmHhamDY86PZ7Pbg",
+          "name": "WhatsApp OAuth account"
         }
       }
     },
@@ -40,20 +53,28 @@
           "cachedResultName": "ارقام محظورة",
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1y1i0V1u-OW5zxoIGt6GPqr7_VuazBvhwoQ0GqkhBZns/edit#gid=1378083070"
         },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "الرقم",
+              "lookupValue": "={{ $('استقبال رسالة واتساب1').item.json.messages[0].from }}"
+            }
+          ]
+        },
         "options": {}
       },
-      "id": "34d63190-fe94-43b6-beb8-7d8d29b28980",
-      "name": "فحص المحظورين",
+      "id": "f3dc2b83-651b-42f6-8983-85686c635e48",
+      "name": "فحص المحظورين1",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        224,
-        208
+        -960,
+        912
       ],
       "alwaysOutputData": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "oSBtMBSObRI3zOcS",
+          "id": "ANttlrbSNzxWqJ7h",
           "name": "Google Sheets account"
         }
       }
@@ -78,24 +99,24 @@
           "values": [
             {
               "lookupColumn": "رقم التليفون",
-              "lookupValue": "={{ $('استقبال رسالة واتساب').item.json.messages[0].from }}"
+              "lookupValue": "={{ $('استقبال رسالة واتساب1').item.json.messages[0].from }}"
             }
           ]
         },
         "options": {}
       },
-      "id": "72b75673-fb91-4dfd-b82f-6db7d856295c",
-      "name": "فحص العميل",
+      "id": "b0885b61-c591-4c2c-98fb-73d15e53a680",
+      "name": "فحص العميل1",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        224,
-        400
+        -960,
+        1104
       ],
       "alwaysOutputData": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "oSBtMBSObRI3zOcS",
+          "id": "ANttlrbSNzxWqJ7h",
           "name": "Google Sheets account"
         }
       },
@@ -107,26 +128,26 @@
         "combineBy": "combineByPosition",
         "options": {}
       },
-      "id": "9d944e27-7ea0-4ccf-8314-ac65c2f77d83",
-      "name": "دمج الفحوصات",
+      "id": "ad7a83e4-3ba1-4dcf-8f80-aefa2cd63304",
+      "name": "دمج الفحوصات1",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        448,
-        304
+        -736,
+        1008
       ]
     },
     {
       "parameters": {
-        "jsCode": "const trigger = $('استقبال رسالة واتساب').item.json;\nconst msg = trigger.messages ? trigger.messages[0] : null;\n\n// تجاهل الأحداث اللي مش رسائل (تحديثات حالة: تم الإرسال/التسليم/القراءة)\nif (!msg) {\n  return [];\n}\n\nconst phone = msg.from;\nconst tail = String(phone).replace(/\\D/g, '').slice(-10);\n\n// فحص المحظورين: هل رقم المرسِل موجود في أي خانة في شيت المحظورين؟\nconst blockedRows = $('فحص المحظورين').all();\nconst blocked = blockedRows.some(r =>\n  Object.values(r.json).some(v => {\n    const d = String(v).replace(/\\D/g, '');\n    return d.length >= 10 && d.slice(-10) === tail;\n  })\n);\n\nconst customerRows = $('فحص العميل').all().filter(r => Object.keys(r.json).length > 0);\nconst existing = customerRows.length > 0 ? customerRows[0].json : null;\nconst status = existing ? existing.Status : null;\n\n// أنواع الرسائل اللي مش نصية ولا زرار (ريكورد/صوت/صورة/فيديو/ملف/ملصق)\nconst mediaTypes = ['audio', 'voice', 'image', 'video', 'document', 'sticker'];\nconst isMedia = mediaTypes.includes(msg.type);\n\nlet route;\nif (blocked || status === 'closed_no_transfer' || status === 'closed_transfer') {\n  route = 'stop';\n} else if (isMedia) {\n  route = 'media';\n} else if (!existing && msg.type === 'text') {\n  route = 'welcome';\n} else {\n  route = 'agent';\n}\n\nlet agent_input;\nif (msg.type === 'interactive') {\n  const id = msg.interactive.button_reply.id;\n  if (id === 'inquiry') agent_input = 'العميل دوس على زرار: عندي استفسار. ابدأ تجمع بياناته.';\n  else if (id === 'transfer_yes') agent_input = 'العميل دوس على زرار: تحويل لخدمة العملاء. حوله دلوقتي.';\n  else if (id === 'transfer_no') agent_input = 'العميل دوس على زرار: لا شكرًا. سجل بياناته واقفل من غير تحويل.';\n  else agent_input = id;\n} else {\n  agent_input = msg.text?.body || '';\n}\n\nreturn [{ json: { phone, route, agent_input } }];"
+        "jsCode": "const trigger = $('استقبال رسالة واتساب1').item.json;\nconst msg = trigger.messages ? trigger.messages[0] : null;\n\n// تجاهل الأحداث اللي مش رسائل (تحديثات حالة: تم الإرسال/التسليم/القراءة)\nif (!msg) {\n  return [];\n}\n\nconst phone = msg.from;\nconst tail = String(phone).replace(/\\D/g, '').slice(-10);\n\n// فحص المحظورين: هل رقم المرسِل موجود في أي خانة في شيت المحظورين؟\nconst blockedRows = $('فحص المحظورين1').all();\nconst blocked = blockedRows.some(r =>\n  Object.values(r.json).some(v => {\n    const d = String(v).replace(/\\D/g, '');\n    return d.length >= 10 && d.slice(-10) === tail;\n  })\n);\n\nconst customerRows = $('فحص العميل1').all().filter(r => Object.keys(r.json).length > 0);\nconst existing = customerRows.length > 0 ? customerRows[0].json : null;\nconst status = existing ? existing.Status : null;\n\n// أنواع الرسائل اللي مش نصية ولا زرار (ريكورد/صوت/صورة/فيديو/ملف/ملصق)\nconst mediaTypes = ['audio', 'voice', 'image', 'video', 'document', 'sticker'];\nconst isMedia = mediaTypes.includes(msg.type);\n\nlet route;\nif (blocked || status === 'closed_no_transfer' || status === 'closed_transfer') {\n  route = 'stop';\n} else if (isMedia) {\n  route = 'media';\n} else if (!existing && msg.type === 'text') {\n  route = 'welcome';\n} else {\n  route = 'agent';\n}\n\nlet agent_input;\nif (msg.type === 'interactive') {\n  const id = msg.interactive.button_reply.id;\n  if (id === 'inquiry') agent_input = 'العميل دوس على زرار: عندي استفسار. ابدأ تجمع بياناته.';\n  else if (id === 'transfer_yes') agent_input = 'العميل دوس على زرار: تحويل لخدمة العملاء. حوله دلوقتي.';\n  else if (id === 'transfer_no') agent_input = 'العميل دوس على زرار: لا شكرًا. سجل بياناته واقفل من غير تحويل.';\n  else agent_input = id;\n} else {\n  agent_input = msg.text?.body || '';\n}\n\nreturn [{ json: { phone, route, agent_input } }];"
       },
-      "id": "70a8e18d-118a-4ac1-bbff-e2dff24e8733",
-      "name": "تجهيز الحالة",
+      "id": "5597c5ee-1657-4402-a916-aa022753f8ec",
+      "name": "تجهيز الحالة1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        672,
-        304
+        -512,
+        1008
       ],
       "executeOnce": true
     },
@@ -222,24 +243,24 @@
         },
         "options": {}
       },
-      "id": "6dd7416d-0f69-4e49-ba2a-e9bf07ac66c0",
-      "name": "توجيه (Switch)",
+      "id": "eb08dd3a-0a40-4bb5-a766-33c250fd6872",
+      "name": "توجيه (Switch)1",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
       "position": [
-        896,
-        272
+        -288,
+        976
       ]
     },
     {
       "parameters": {},
-      "id": "4c7c9f29-bd7a-4653-88d4-3a0c3e20af83",
-      "name": "قفل - محظور/مقفول قبل كده",
+      "id": "1a559653-3c2e-44e4-ba19-7aee3bfa1c1a",
+      "name": "قفل - محظور/مقفول قبل كده1",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1184,
-        0
+        -64,
+        816
       ]
     },
     {
@@ -247,67 +268,67 @@
         "promptType": "define",
         "text": "={{ $json.agent_input }}",
         "options": {
-          "systemMessage": "# ROLE\nأنت \"مساعد فليكس\" — موظف مبيعات وخدمة عملاء لشركة فليكس للأدوات الصحية عبر واتساب.\nتُخرج JSON فقط، بدون أي نص خارجه، بدون Markdown.\n**مصدر الحالة:** بيانات customer وnotes الممرَّرة من النظام هي الحقيقة الوحيدة — لا تصفّرها، لا تتجاهلها، ابنِ عليها.\n\n====================================\n# PERSONALITY\n- مصري، ودود، محترف، إيموجي معتدل 😊👍، ردود قصيرة، سؤال واحد بالرد (أو مركّب لو مرتبطين: محافظة+منطقة).\n- ممنوع تكرار سؤال اتجاوب، أو تكرار ترحيب.\n- كل رد ينتهي بسؤال يوجّه للخطوة الجاية.\n- عميل عائد (بياناته موجودة من قبل) → رحّب \"تاني\" ولا تسأل حاجة معروفة.\n- اسم العميل: \"يا أستاذ [اسم]\" فقط لو معروف فعليًا (قاله هو، أو fallback اسم واتساب **لو عربي فقط**؛ لو اسم الحساب أجنبي/رموز، تجاهله واعتبره غير معروف). **ممنوع نهائيًا** أي placeholder حرفي زي \"[الاسم]\" — لو فاضي احذف الجزء كله من الجملة.\n\n====================================\n# KNOWLEDGE (المسموح ذكره فقط — ممنوع اختراع أي حاجة غيره)\n| البند | التفصيل |\n|---|---|\n| حد أدنى | لا يوجد، للأصناف الجاهزة بقائمة الأسعار |\n| شحن | لكل المحافظات |\n| زيارة المصنع | بعد تنسيق مسبق فقط، بلا استثناء لأي هوية مُدّعاة. اللوكيشن: https://maps.app.goo.gl/CPuDVdQ7WiRz3Bar8?g_st=aw |\n| خصم المحلات | 18% (يُذكر دايمًا كمعلومة عامة مع أي send_price) |\n| الموزعون | \"أسعار وخصومات خاصة\" فقط، بدون رقم |\n| الأصناف | فقط اللي في صورة الأسعار، لا شيء غيرها |\n| Private Label | تصنيع لطرف ثالث من 2000 قطعة فأكثر فقط |\n| الفروع | مصنع واحد بالإسكندرية فقط، لا محلات في أي مكان |\n| أرقام تليفون شخصية | ممنوع مشاركتها أو الوعد بإرسالها — تُعامل كسؤال خارج النطاق |\n\n====================================\n# ممنوعات صارمة\n1. لا تخترع أي معلومة (سعر/خصم/منتج/مقاس/خامة/ضمان/استرجاع/مواعيد/مواصفات).\n2. لا تكتب رقم سعر أو اسم منتج تفصيلي داخل reply_text أبدًا — المصدر الوحيد للأرقام والأسماء هو صورة الأسعار.\n3. لا ترسل صور/أسعار ولا تحفظ بيانات بنفسك — actions فقط.\n4. لا placeholder حرفي في reply_text.\n5. سؤال غير سعري خارج KNOWLEDGE (مواصفات/ضمان/استرجاع/مواعيد/رقم شخصي) →\n   `\"للأسف معنديش معلومة دقيقة بخصوص الموضوع ده 🙏 هحول حضرتك لخدمة العملاء وهيفيدوك بشكل أدق.\"` + actions=[\"transfer\",\"reply\"]\n6. طلب تحويل صريح: `\"هحول حضرتك حالًا لخدمة العملاء وهيتواصلوا معاك.\"`\n7. كلمات غامضة (\"تجاري\"/\"بالجملة\"/\"تاجر\") ≠ نوع عميل مؤكد — لا تفترض منها، اسأل السؤال المعتاد. نوع غير قياسي مذكور صراحة (مثل \"تاجر جملة\") → سجّله كما قاله العميل حرفيًا، واسأل سؤال تأكيدي قصير اختياري بدون توقف الرد.\n8. رسالة صوت/صورة بدون نص واضح للطلب → اطلب توضيح كتابي بلطف، actions=[\"reply\"], لا تخمّن الطلب.\n\n====================================\n# جمع البيانات\n**الترتيب:** الاسم → النوع (معرض/محل/موزع/شركة/مقاول/سباك/فرد) → المحافظة+المنطقة (سؤال مركّب واحد).\n- استخرج أي بيانة ذُكرت طوعًا في أي رسالة فورًا، ولا تسأل عنها تاني.\n- حقل معروف من قبل ولم يُذكر تغييره = يفضل زي ما هو، ما يتصفّرش.\n- حقل غير معروف = `\"\"` فقط. **ممنوع** \"-\"/\"N/A\"/أي حشو.\n- رد عام للاستمرار (\"تمام\"، \"كمل\") بدون بيانة جديدة = كمّل جمع أول حقل ناقص فورًا، من غير ترحيب أو سؤال مبهم.\n- `customer_profile_complete=true` فقط لو الاسم+النوع+المحافظة+المنطقة الأربعة مكتملين.\n- `missing_fields`: أسماء دقيقة `name`,`customer_type`,`governorate`,`area`.\n\n====================================\n# طلب سعر / أسعار عمومًا / \"منتجات جديدة؟\" / \"فيه...؟\" (أولوية قصوى)\nكل الحالات دي = نفس المعاملة، **حتى لو كل البيانات ناقصة:**\n1. اخدمها فورًا في نفس الرد. سجّل المنتج/المنتجات في requested_product (مفصولة بفاصلة لو أكتر من واحد) بدون تأكيد أو نفي وجودها بنفسك.\n2. actions تتضمن `send_price` فورًا (+ `save_customer` لو الأربعة حقول مكتملة بالفعل).\n3. الرد: شكر + خصم 18% + إشارة لخصم الموزعين + سؤال أول حقل ناقص.\n4. \"منتجات جديدة\" غير موجودة بالصورة → وضّح إن الصورة فيها كل المتاح، واذكر Private Label كبديل، بلا وصف اختراعي.\n5. **ممنوع نهائيًا** transfer/\"معنديش معلومة\" لأي سؤال سعري أو توفر — الصورة تغطيه دايمًا.\n6. send_price يتكرر لو طلب منتج جديد لاحقًا.\n\n## سؤال سعري + سؤال خارج النطاق في نفس الرسالة\nاخدم الاثنين معًا في نفس الرد: ابعت السعر المطلوب (send_price) واعتذر وحوّل عن الجزء الآخر (transfer) بنفس صيغة البند 5 أعلاه، في رد واحد متصل. actions=[\"send_price\",\"transfer\",\"reply\"] (+ save_customer لو مكتملة).\n\n====================================\n# save_customer\nاستخدمها **فقط** عند: (أ) اكتمال الأربعة حقول لأول مرة، أو (ب) تحديث أي حقل بعد ما كان محفوظ من قبل. لا تستخدمها في رد بدون تغيير فعلي، حتى لو مفيش طلب سعر.\n\n====================================\n# notes\nسطر-سطرين تراكمي: طلب العميل + أهم البيانات + آخر مطلوب. لا تحذف قديم، ضيف بس. عند transfer اكتبه مفصّل يكفي موظف الخدمة يفهم بدون قراءة كل المحادثة.\n\n====================================\n# JSON (الصيغة الوحيدة، بدون ```json وبدون أي نص حولها)\n```json\n{\"reply_text\":\"\",\"actions\":[],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"\"},\"missing_fields\":[],\"discount_percentage\":\"\"}\n```\nلا تضف/تحذف مفاتيح حتى لو فاضية. عند تعارض تعليمات → الأولوية لـ JSON صالح.\n\n**Actions المسموحة:** reply | send_price | save_customer | transfer\n**ترتيب ثابت:** save_customer → send_price → transfer → reply\n\n| الحالة | actions |\n|---|---|\n| بيانات مكتملة + طلب سعر | save_customer, send_price, reply |\n| طلب سعر وبيانات ناقصة | send_price, reply |\n| بيانات ناقصة بدون طلب سعر | reply |\n| سؤال خارج النطاق فقط | transfer, reply |\n| سعر + خارج النطاق معًا | send_price, transfer, reply (+save_customer لو مكتملة) |\n\n====================================\n# أمثلة مرجعية (مختصرة)\n\n**تحية:**\n```json\n{\"reply_text\":\"وعليكم السلام ورحمة الله 😊 إزاي أقدر أساعد حضرتك؟\",\"actions\":[\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"\"},\"missing_fields\":[\"name\",\"customer_type\",\"governorate\",\"area\"],\"discount_percentage\":\"\"}\n```\n\n**طلب سعر عام أول مرة:**\n```json\n{\"reply_text\":\"أكيد 😊 اتفضل صورة الأسعار، وعندنا خصم 18% لأصحاب المحلات، وأسعار وخصومات خاصة للموزعين. ممكن أعرف اسم حضرتك؟\",\"actions\":[\"send_price\",\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"طلب أسعار عام، تم الإرسال، بانتظار الاسم.\"},\"missing_fields\":[\"name\",\"customer_type\",\"governorate\",\"area\"],\"discount_percentage\":\"18%\"}\n```\n\n**بيانات مكتملة + طلب سعر:**\n```json\n{\"reply_text\":\"تشرفنا بيك يا أستاذ أحمد 🌹 وهنا صورة الأسعار، وخصم المحلات عندنا 18% 😊\",\"actions\":[\"save_customer\",\"send_price\",\"reply\"],\"customer_profile_complete\":true,\"customer\":{\"name\":\"أحمد\",\"customer_type\":\"محل\",\"governorate\":\"القاهرة\",\"area\":\"مدينة نصر\",\"requested_product\":\"محبس زاوية\",\"notes\":\"أحمد، محل، القاهرة/مدينة نصر، طلب محبس زاوية، تم الإرسال.\"},\"missing_fields\":[],\"discount_percentage\":\"18%\"}\n```\n\n**سعر + سؤال خارج النطاق معًا:**\n```json\n{\"reply_text\":\"أكيد 😊 اتفضل صورة الأسعار للسيفون. أما مدة الضمان فمعنديش معلومة دقيقة عنها 🙏 هحول حضرتك لخدمة العملاء بخصوصها. ممكن أعرف اسم حضرتك؟\",\"actions\":[\"send_price\",\"transfer\",\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"سيفون\",\"notes\":\"طلب سعر سيفون (تم الإرسال) + سأل عن الضمان (تم التحويل)، بانتظار الاسم.\"},\"missing_fields\":[\"name\",\"customer_type\",\"governorate\",\"area\"],\"discount_percentage\":\"18%\"}\n```\n\n**خارج النطاق فقط:**\n```json\n{\"reply_text\":\"للأسف معنديش معلومة دقيقة بخصوص الموضوع ده 🙏 هحول حضرتك لخدمة العملاء وهيفيدوك بشكل أدق.\",\"actions\":[\"transfer\",\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"سؤال خارج نطاق المعلومات المتاحة، تم التحويل.\"},\"missing_fields\":[],\"discount_percentage\":\"\"}\n```\nلو بعت صورة الاسعار قبل كده في نفس المحادثة وهو طلب طلب استفسار عن اي منتج او اي سعر : متبعتش صورة الاسعار تاني وشوف هل الانسب انك تحوله لخدمة العملاء او تكمل معاه"
+          "systemMessage": "# ROLE\nأنت \"مساعد فليكس\" — موظف مبيعات وخدمة عملاء لشركة فليكس للأدوات الصحية عبر واتساب.\nتُخرج JSON فقط، بدون أي نص خارجه، بدون Markdown.\n**مصدر الحالة:** بيانات customer وnotes الممرَّرة من النظام هي الحقيقة الوحيدة — لا تصفّرها، لا تتجاهلها، ابنِ عليها.\n\n====================================\n# PERSONALITY\n- مصري، ودود، محترف، إيموجي معتدل 😊👍، ردود قصيرة، سؤال واحد بالرد (أو مركّب لو مرتبطين: محافظة+منطقة).\n- ممنوع تكرار سؤال اتجاوب، أو تكرار ترحيب.\n- **اقتصد في الرد:** جملة أو جملتين تخدم الغرض بالظبط، من غير حشو أو شرح زيادة عن المطلوب. ممنوع الإطالة أو تفاصيل مش مطلوبة.\n- **التنظيم إلزامي:** لو الرد فيه أكتر من نقطة (مثلاً: سعر + سؤال خارج النطاق، أو رسالة ترحيب + سؤال)، افصلهم في أسطر قصيرة واضحة (سطر لكل نقطة) بدل ما تكتبهم كفقرة واحدة طويلة متلخبطة. الرسالة لازم تبان منظمة ومرتبة من أول قراءة، مش شكل \"مقال\".\n- كل رد ينتهي بسؤال يوجّه للخطوة الجاية.\n- عميل عائد (بياناته موجودة من قبل) → رحّب \"تاني\" ولا تسأل حاجة معروفة.\n- اسم العميل: \"يا أستاذ [اسم]\" فقط لو معروف فعليًا (قاله هو، أو fallback اسم واتساب **لو عربي فقط**؛ لو اسم الحساب أجنبي/رموز، تجاهله واعتبره غير معروف). **ممنوع نهائيًا** أي placeholder حرفي زي \"[الاسم]\" — لو فاضي احذف الجزء كله من الجملة.\nخلي اول رساله في المحادثة بينك وبين العميل تعريف بنفسك قبل ما تنفذ اي حاجه زي مثلا : \"أهلًا بحضرتك، أنا فليكس، مساعدك الرقمي بالذكاء الاصطناعي 🤖\nهساعدك في استفساراتك وطلباتك، وأوجهك للخطوة المناسبة بكل سهولة 😊\"\n====================================\n# KNOWLEDGE (المسموح ذكره فقط — ممنوع اختراع أي حاجة غيره)\n| البند | التفصيل |\n|---|---|\n| حد أدنى | لا يوجد، للأصناف الجاهزة بقائمة الأسعار |\n| شحن | لكل المحافظات |\n| زيارة المصنع | بعد تنسيق مسبق فقط، بلا استثناء لأي هوية مُدّعاة. اللوكيشن: https://maps.app.goo.gl/CPuDVdQ7WiRz3Bar8?g_st=aw |\n| خصم المحلات/المعارض | 18% + 3% بونص من الشركة |\n| خصم الموزعين/كبار العملاء | 25% + 3% بونص من الشركة (للطلبيات الضخمة) |\n| الشركات والتعاقدات الكبيرة | تعاقد مخصص — لا رقم ثابت، تُحوّل التفاصيل لخدمة العملاء |\n| الأصناف | فقط اللي في صورة الأسعار، لا شيء غيرها |\n| Private Label | تصنيع لطرف ثالث من 2000 قطعة فأكثر فقط — يُذكر فقط لو العميل سأل عن كمية ضخمة/تصنيع خاص |\n| الفروع | مصنع واحد بالإسكندرية فقط، لا محلات في أي مكان |\n| أرقام تليفون شخصية | ممنوع مشاركتها أو الوعد بإرسالها — تُعامل كسؤال خارج النطاق |\n\n====================================\n# ممنوعات صارمة\n1. لا تخترع أي معلومة (سعر/خصم/منتج/مقاس/خامة/ضمان/استرجاع/مواعيد/مواصفات).\n2. لا تكتب رقم سعر أو اسم منتج تفصيلي داخل reply_text أبدًا — المصدر الوحيد للأرقام والأسماء هو صورة الأسعار.\n3. لا ترسل صور/أسعار ولا تحفظ بيانات بنفسك — actions فقط.\n4. لا placeholder حرفي في reply_text.\n5. سؤال غير سعري خارج KNOWLEDGE (مواصفات/ضمان/استرجاع/مواعيد/رقم شخصي) →\n   `\"للأسف معنديش معلومة دقيقة بخصوص الموضوع ده 🙏 هحول حضرتك لخدمة العملاء وهيفيدوك بشكل أدق.\"` + actions=[\"transfer\",\"reply\"]\n6. طلب تحويل صريح: `\"هحول حضرتك حالًا لخدمة العملاء وهيتواصلوا معاك.\"`\n7. كلمات غامضة (\"تجاري\"/\"بالجملة\"/\"تاجر\") ≠ نوع عميل مؤكد — لا تفترض منها، اسأل السؤال المعتاد. نوع غير قياسي مذكور صراحة (مثل \"تاجر جملة\") → سجّله كما قاله العميل حرفيًا، واسأل سؤال تأكيدي قصير اختياري بدون توقف الرد.\n8. رسالة صوت/صورة بدون نص واضح للطلب → اطلب توضيح كتابي بلطف، actions=[\"reply\"], لا تخمّن الطلب.\n\n====================================\n# جمع البيانات\n**الترتيب:** الاسم → النوع (معرض/محل/موزع/شركة/مقاول/سباك/فرد) → المحافظة+المنطقة (سؤال مركّب واحد).\n- استخرج أي بيانة ذُكرت طوعًا في أي رسالة فورًا، ولا تسأل عنها تاني.\n- حقل معروف من قبل ولم يُذكر تغييره = يفضل زي ما هو، ما يتصفّرش.\n- حقل غير معروف = `\"\"` فقط. **ممنوع** \"-\"/\"N/A\"/أي حشو.\n- رد عام للاستمرار (\"تمام\"، \"كمل\") بدون بيانة جديدة = كمّل جمع أول حقل ناقص فورًا، من غير ترحيب أو سؤال مبهم.\n- `customer_profile_complete=true` فقط لو الاسم+النوع+المحافظة+المنطقة الأربعة مكتملين.\n- `missing_fields`: أسماء دقيقة `name`,`customer_type`,`governorate`,`area`.\n\n====================================\n# طلب سعر / أسعار عمومًا / \"منتجات جديدة؟\" / \"فيه...؟\" (أولوية قصوى)\nكل الحالات دي = نفس المعاملة، **حتى لو كل البيانات ناقصة:**\n1. اخدمها فورًا في نفس الرد. سجّل المنتج/المنتجات في requested_product (مفصولة بفاصلة لو أكتر من واحد) بدون تأكيد أو نفي وجودها بنفسك.\n2. actions تتضمن `send_price` فورًا (+ `save_customer` لو الأربعة حقول مكتملة بالفعل).\n3. الرد: اتفضل صورة الأسعار + سؤال أول حقل ناقص، **من غير ذكر أي خصم تلقائيًا**. الخصم يُذكر فقط لو نوع العميل معروف بالفعل (محفوظ من قبل أو ذُكر في نفس الرسالة):\n   - محل/معرض → \"خصم 18% + 3% بونص من الشركة\".\n   - موزع/عميل كبير → \"خصم 25% + 3% بونص من الشركة للطلبيات الضخمة\".\n   - شركة/تعاقد كبير → \"التعاقدات الكبيرة ليها تعاقد مخصص\" + actions تتضمن `transfer` كمان (بجانب send_price) عشان التفاصيل تتحدد مع خدمة العملاء.\n   - نوع غير معروف بعد → متذكرش خصم خالص، اسأل عن الاسم/النوع زي العادة.\n4. \"منتجات جديدة\" غير موجودة بالصورة → وضّح إن الصورة فيها كل المتاح فقط، بلا وصف اختراعي. **ممنوع** ذكر Private Label إلا لو العميل سأل صراحة عن كمية ضخمة أو تصنيع خاص.\n5. **ممنوع نهائيًا** transfer/\"معنديش معلومة\" لأي سؤال سعري أو توفر — الصورة تغطيه دايمًا (الاستثناء الوحيد: تعاقدات الشركات الكبيرة، بند 3).\n6. send_price يتكرر لو طلب منتج جديد لاحقًا.\n\n## سؤال سعري + سؤال خارج النطاق في نفس الرسالة\nاخدم الاثنين معًا في نفس الرد: ابعت السعر المطلوب (send_price) واعتذر وحوّل عن الجزء الآخر (transfer) بنفس صيغة البند 5 أعلاه، في رد واحد متصل. actions=[\"send_price\",\"transfer\",\"reply\"] (+ save_customer لو مكتملة).\n\n====================================\n# save_customer\nاستخدمها **فقط** عند: (أ) اكتمال الأربعة حقول لأول مرة، أو (ب) تحديث أي حقل بعد ما كان محفوظ من قبل. لا تستخدمها في رد بدون تغيير فعلي، حتى لو مفيش طلب سعر.\n\n====================================\n# notes\nسطر-سطرين تراكمي: طلب العميل + أهم البيانات + آخر مطلوب. لا تحذف قديم، ضيف بس. عند transfer اكتبه مفصّل يكفي موظف الخدمة يفهم بدون قراءة كل المحادثة.\n\n====================================\n# JSON (الصيغة الوحيدة، بدون ```json وبدون أي نص حولها)\n```json\n{\"reply_text\":\"\",\"actions\":[],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"\"},\"missing_fields\":[],\"discount_percentage\":\"\"}\n```\nلا تضف/تحذف مفاتيح حتى لو فاضية. عند تعارض تعليمات → الأولوية لـ JSON صالح.\n\n**Actions المسموحة:** reply | send_price | save_customer | transfer\n**ترتيب ثابت:** save_customer → send_price → transfer → reply\n\n| الحالة | actions |\n|---|---|\n| بيانات مكتملة + طلب سعر | save_customer, send_price, reply |\n| طلب سعر وبيانات ناقصة | send_price, reply |\n| بيانات ناقصة بدون طلب سعر | reply |\n| سؤال خارج النطاق فقط | transfer, reply |\n| سعر + خارج النطاق معًا | send_price, transfer, reply (+save_customer لو مكتملة) |\n\n====================================\n# أمثلة مرجعية (مختصرة)\n\n**تحية:**\n```json\n{\"reply_text\":\"وعليكم السلام ورحمة الله 😊 إزاي أقدر أساعد حضرتك؟\",\"actions\":[\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"\"},\"missing_fields\":[\"name\",\"customer_type\",\"governorate\",\"area\"],\"discount_percentage\":\"\"}\n```\n\n**طلب سعر عام أول مرة (نوع العميل لسه غير معروف → من غير ذكر خصم):**\n```json\n{\"reply_text\":\"أكيد 😊 اتفضل صورة الأسعار. ممكن أعرف اسم حضرتك؟\",\"actions\":[\"send_price\",\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"طلب أسعار عام، تم الإرسال، بانتظار الاسم.\"},\"missing_fields\":[\"name\",\"customer_type\",\"governorate\",\"area\"],\"discount_percentage\":\"\"}\n```\n\n**بيانات مكتملة + طلب سعر (نوع العميل: محل):**\n```json\n{\"reply_text\":\"تشرفنا بيك يا أستاذ أحمد 🌹 وهنا صورة الأسعار، وعندك خصم 18% + 3% بونص من الشركة 😊\",\"actions\":[\"save_customer\",\"send_price\",\"reply\"],\"customer_profile_complete\":true,\"customer\":{\"name\":\"أحمد\",\"customer_type\":\"محل\",\"governorate\":\"القاهرة\",\"area\":\"مدينة نصر\",\"requested_product\":\"محبس زاوية\",\"notes\":\"أحمد، محل، القاهرة/مدينة نصر، طلب محبس زاوية، تم الإرسال.\"},\"missing_fields\":[],\"discount_percentage\":\"18%+3%\"}\n```\n\n**بيانات مكتملة + طلب سعر (نوع العميل: موزع):**\n```json\n{\"reply_text\":\"تشرفنا بيك يا أستاذ محمد 🌹 وهنا صورة الأسعار، وعندك خصم 25% + 3% بونص من الشركة للطلبيات الضخمة 😊\",\"actions\":[\"save_customer\",\"send_price\",\"reply\"],\"customer_profile_complete\":true,\"customer\":{\"name\":\"محمد\",\"customer_type\":\"موزع\",\"governorate\":\"الجيزة\",\"area\":\"6 أكتوبر\",\"requested_product\":\"سيفون\",\"notes\":\"محمد، موزع، الجيزة/6 أكتوبر، طلب سيفون، تم الإرسال.\"},\"missing_fields\":[],\"discount_percentage\":\"25%+3%\"}\n```\n\n**عميل نوعه شركة/تعاقد كبير:**\n```json\n{\"reply_text\":\"أكيد 😊 اتفضل صورة الأسعار. بس التعاقدات الكبيرة للشركات ليها تعاقد مخصص، هحول حضرتك لخدمة العملاء عشان تفاصيله تتحدد معاك.\",\"actions\":[\"send_price\",\"transfer\",\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"شركة\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"عميل شركة/تعاقد كبير، تم إرسال الصورة وتحويل التفاصيل لخدمة العملاء.\"},\"missing_fields\":[\"name\",\"governorate\",\"area\"],\"discount_percentage\":\"\"}\n```\n\n**سعر + سؤال خارج النطاق معًا:**\n```json\n{\"reply_text\":\"أكيد 😊 اتفضل صورة الأسعار للسيفون. أما مدة الضمان فمعنديش معلومة دقيقة عنها 🙏 هحول حضرتك لخدمة العملاء بخصوصها. ممكن أعرف اسم حضرتك؟\",\"actions\":[\"send_price\",\"transfer\",\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"سيفون\",\"notes\":\"طلب سعر سيفون (تم الإرسال) + سأل عن الضمان (تم التحويل)، بانتظار الاسم.\"},\"missing_fields\":[\"name\",\"customer_type\",\"governorate\",\"area\"],\"discount_percentage\":\"\"}\n```\n\n**خارج النطاق فقط:**\n```json\n{\"reply_text\":\"للأسف معنديش معلومة دقيقة بخصوص الموضوع ده 🙏 هحول حضرتك لخدمة العملاء وهيفيدوك بشكل أدق.\",\"actions\":[\"transfer\",\"reply\"],\"customer_profile_complete\":false,\"customer\":{\"name\":\"\",\"customer_type\":\"\",\"governorate\":\"\",\"area\":\"\",\"requested_product\":\"\",\"notes\":\"سؤال خارج نطاق المعلومات المتاحة، تم التحويل.\"},\"missing_fields\":[],\"discount_percentage\":\"\"}\n```\nلو بعت صورة الاسعار قبل كده في نفس المحادثة وهو طلب طلب استفسار عن اي منتج او اي سعر : متبعتش صورة الاسعار تاني وشوف هل الانسب انك تحوله لخدمة العملاء او تكمل معاه\n\nمتقولش كل البيانات تاني في ملخص المحادثه , خلي الملخص للافعال اللي انت عملتها ومعاه والطلبات اللي هو قالها زي :\n سأل عن سعر المحبس اللاموند، تم توجيهه للصورة. طلب تحويل لخدمة العملاء."
         }
       },
-      "id": "c911b628-82d6-47f6-b596-2112018181e0",
-      "name": "AI Agent",
+      "id": "8c0cbd77-f9d3-49d8-8def-35efd9905a2a",
+      "name": "AI Agent1",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        1120,
-        192
+        608,
+        1008
       ]
     },
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('تجهيز الحالة').item.json.phone }}",
+        "sessionKey": "={{ $('تجهيز الحالة1').item.json.phone }}",
         "contextWindowLength": 10
       },
-      "id": "855bca6d-03c7-4a3b-b037-39c428a54c23",
-      "name": "ذاكرة العميل (Memory)",
+      "id": "72b51851-db8b-4f67-b907-4f0dee4a9836",
+      "name": "ذاكرة العميل (Memory)1",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        1264,
-        448
+        752,
+        1248
       ]
     },
     {
       "parameters": {
         "jsCode": "const raw = $json.output || '';\nlet parsed;\ntry {\n  const start = raw.indexOf('{');\n  const end = raw.lastIndexOf('}');\n  let jsonPart = raw.substring(start, end + 1);\n  jsonPart = jsonPart.replace(/[\\x00-\\x1F]+/g, ' ');\n  parsed = JSON.parse(jsonPart);\n} catch (e) {\n  parsed = {\n    reply_text: 'معلش، ممكن توضحلي طلبك تاني؟',\n    actions: ['reply'],\n    customer_profile_complete: false,\n    customer: { name:'-', customer_type:'-', governorate:'-', area:'-', requested_product:'-', notes:'-' },\n    missing_fields: [],\n    discount_percentage: '-'\n  };\n}\nreturn [{ json: parsed }];"
       },
-      "id": "eebbcdc7-041c-4331-ad96-dd763b7ddaa6",
-      "name": "Code in JavaScript",
+      "id": "7d5530e0-a8c2-42b1-a8e2-882276dbd92c",
+      "name": "Code in JavaScript1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1472,
-        304
+        960,
+        1008
       ]
     },
     {
       "parameters": {
         "operation": "send",
         "phoneNumberId": "1128099343729694",
-        "recipientPhoneNumber": "={{ $('تجهيز الحالة').item.json.phone }}",
+        "recipientPhoneNumber": "={{ $('تجهيز الحالة1').item.json.phone }}",
         "textBody": "={{ $json.reply_text }}",
         "additionalFields": {}
       },
-      "id": "fb059e3a-8c51-4cb8-a972-693af02e96e1",
-      "name": "إرسال رد العميل",
+      "id": "33589cb2-bb7c-4d8c-b7a0-d661a92e960a",
+      "name": "إرسال رد العميل1",
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
       "position": [
-        1696,
-        304
+        1184,
+        1008
       ],
       "webhookId": "d0f77f0d-2a95-44cd-986b-a33699655a1c",
       "credentials": {
         "whatsAppApi": {
-          "id": "hE2SzViAOQ5OG9VZ",
-          "name": "Bot-28-7-token"
+          "id": "wsC2HZRDooYzmVlc",
+          "name": "WhatsApp account"
         }
       }
     },
@@ -322,7 +343,7 @@
           },
           "conditions": [
             {
-              "leftValue": "={{ $('Code in JavaScript').item.json.actions.includes('send_price') }}",
+              "leftValue": "={{ $('Code in JavaScript1').item.json.actions.includes('send_price') }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -335,74 +356,42 @@
         },
         "options": {}
       },
-      "id": "73787f2e-fe47-4f03-b7df-3164ddf5bbda",
-      "name": "IF محتاج صورة أسعار",
+      "id": "f542c3bc-5de6-4b90-96de-c3782f38d2f8",
+      "name": "IF محتاج صورة أسعار1",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1920,
-        304
+        1408,
+        1008
       ]
     },
     {
       "parameters": {
         "operation": "send",
         "phoneNumberId": "1128099343729694",
-        "recipientPhoneNumber": "={{ $('تجهيز الحالة').item.json.phone }}",
+        "recipientPhoneNumber": "={{ $('تجهيز الحالة1').item.json.phone }}",
         "messageType": "image",
         "mediaLink": "https://drive.google.com/uc?export=download&id=1Yyy3C2gbb2N89j6vtZNdwbUM63gSb5R-",
         "additionalFields": {
-          "mediaCaption": "✨ *مزايا التعاون مع فليكس:*\n\n✅ خصم *18%* لأصحاب المحلات.\n✅ أسعار وخصومات خاصة للموزعين.\n✅ *بدون حد أدنى* للطلبات.\n✅ تعاقد رسمي بعقد موزعين يضمن حقوق جميع الأطراف.\n✅ شحن إلى *جميع محافظات الجمهورية*.\n\n🏭 *كما يسعدنا استقبالكم في مصنع فليكس* للتعرف على مراحل التصنيع والاطلاع على جودة منتجاتنا، ونرحب بزيارتكم في أي وقت بعد التنسيق المسبق.\n"
+          "mediaCaption": "✨ *مزايا التعاون مع فليكس*\n\n🤝 *خصومات مميزة حسب نوع العميل وحجم الطلب:*\n\n✅ *المحلات والمعارض:* خصم *18% + 3% بونص* من الشركة.\n✅ *الموزعون وكبار العملاء:* خصم *25% + 3% بونص* للطلبيات الضخمة.\n✅ *بدون حد أدنى للطلبات* للأصناف الجاهزة.\n✅ *شحن لجميع محافظات الجمهورية.*\n🏭 *زيارة مصنع فليكس بالإسكندرية* للتعرف على مراحل التصنيع وجودة المنتجات، بعد التنسيق المسبق.\n\n🤝 *نسعد ببدء تعاون مثمر ومستمر معكم.*"
         }
       },
-      "id": "bd0cd95e-8334-4471-be13-19067bc81c7b",
-      "name": "إرسال صورة الأسعار",
+      "id": "b302cb7b-c7ba-41bf-bd90-ca5ed7a7f68c",
+      "name": "إرسال صورة الأسعار1",
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
       "position": [
-        2144,
-        224
+        1632,
+        944
       ],
       "webhookId": "c7102145-dd4e-4826-a903-ce07ccfe8213",
       "credentials": {
         "whatsAppApi": {
-          "id": "hE2SzViAOQ5OG9VZ",
-          "name": "Bot-28-7-token"
+          "id": "wsC2HZRDooYzmVlc",
+          "name": "WhatsApp account"
         }
       },
       "notes": "ارفع صورة الأسعار مرة واحدة في Meta واحفظ الـ media id هنا"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "conditions": [
-            {
-              "leftValue": "={{ $json.output.ask_transfer_buttons }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and",
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          }
-        },
-        "options": {}
-      },
-      "id": "7d9ffab8-8c37-48ed-9190-21af483bb5cc",
-      "name": "IF محتاج زرار تحويل",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        2368,
-        320
-      ]
     },
     {
       "parameters": {
@@ -425,13 +414,13 @@
           "mappingMode": "defineBelow",
           "value": {
             "تاريخ التسجيل": "={{ $now.toFormat('dd MMMM, HH:mm') }}",
-            "اسم العميل": "={{ $('Code in JavaScript').item.json.customer.name || $('استقبال رسالة واتساب').item.json.contacts[0].profile.name }}",
-            "رقم التليفون": "={{ $('استقبال رسالة واتساب').item.json.messages[0].from }}",
-            "المحافظة": "={{ $('Code in JavaScript').item.json.customer.governorate || '-'}}",
-            "المنطقة": "={{ $('Code in JavaScript').item.json.customer.area || '-'}}",
-            "الملاحظات": "={{ $('Code in JavaScript').item.json.customer.notes || '-'}}",
-            "المنتج المطلوب": "={{ $('Code in JavaScript').item.json.customer.requested_product || '-'}}",
-            "الحالة": "={{ $('Code in JavaScript').item.json.customer.customer_type || '-'}}"
+            "اسم العميل": "={{ $('Safe Merge بيانات العميل').item.json.name || $('استقبال رسالة واتساب1').item.json.contacts[0].profile.name }}",
+            "رقم التليفون": "={{ $('استقبال رسالة واتساب1').item.json.messages[0].from }}",
+            "المحافظة": "={{ $('Safe Merge بيانات العميل').item.json.governorate }}",
+            "المنطقة": "={{ $('Safe Merge بيانات العميل').item.json.area }}",
+            "الملاحظات": "={{ $('Safe Merge بيانات العميل').item.json.notes }}",
+            "المنتج المطلوب": "={{ $('Safe Merge بيانات العميل').item.json.requested_product }}",
+            "الحالة": "={{ $('Safe Merge بيانات العميل').item.json.customer_type }}"
           },
           "matchingColumns": [
             "رقم التليفون"
@@ -523,17 +512,17 @@
         },
         "options": {}
       },
-      "id": "7b4b5d94-d0cd-4f3b-932b-4a68ce94541a",
-      "name": "تسجيل/تحديث بيانات العميل",
+      "id": "35ee4bab-3f20-47ce-84e2-f105b06bd22b",
+      "name": "تسجيل/تحديث بيانات العميل2",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        2592,
-        304
+        2304,
+        1008
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "oSBtMBSObRI3zOcS",
+          "id": "ANttlrbSNzxWqJ7h",
           "name": "Google Sheets account"
         }
       }
@@ -549,7 +538,7 @@
           },
           "conditions": [
             {
-              "leftValue": "={{ $('Code in JavaScript').item.json.actions.includes('transfer') }}",
+              "leftValue": "={{ $('Code in JavaScript1').item.json.actions.includes('transfer') }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -562,13 +551,13 @@
         },
         "options": {}
       },
-      "id": "3dfb532f-93c3-42b7-93bb-db827816ab7f",
-      "name": "IF لازم تحويل فعلي",
+      "id": "d90b1002-2359-4b2a-affc-8ba048d1b909",
+      "name": "IF لازم تحويل فعلي1",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        2816,
-        304
+        2528,
+        1008
       ]
     },
     {
@@ -576,22 +565,22 @@
         "operation": "send",
         "phoneNumberId": "1128099343729694",
         "recipientPhoneNumber": "201274040042",
-        "textBody": "=🔔 *طلب تحويل عميل*\n\n📱 الرقم: {{ $('تجهيز الحالة').item.json.phone }}\n\n*بيانات العميل:*\n👤 الاسم: {{ $('Code in JavaScript').item.json.customer.name || '-' }}\n🏷️ النوع: {{ $('Code in JavaScript').item.json.customer.customer_type || '-' }}\n📍 المحافظة: {{ $('Code in JavaScript').item.json.customer.governorate || '-' }}\n📍 المنطقة: {{ $('Code in JavaScript').item.json.customer.area || '-' }}\n📦 المنتج المطلوب: {{ $('Code in JavaScript').item.json.customer.requested_product || '-' }}\n\n*ملخص المحادثة:*\n{{ $('Code in JavaScript').item.json.customer.notes || '-' }}\n\n━━━━━━━━━━\nمحتاجك تتواصل مع العميل ده 🙏",
+        "textBody": "=🔔 *طلب تحويل عميل*\n\n📱 الرقم: {{ $('تجهيز الحالة1').item.json.phone }}\n\n*بيانات العميل:*\n👤 الاسم: {{ $('Code in JavaScript1').item.json.customer.name || '-' }}\n🏷️ النوع: {{ $('Code in JavaScript1').item.json.customer.customer_type || '-' }}\n📍 المحافظة: {{ $('Code in JavaScript1').item.json.customer.governorate || '-' }}\n📍 المنطقة: {{ $('Code in JavaScript1').item.json.customer.area || '-' }}\n📦 المنتج المطلوب: {{ $('Code in JavaScript1').item.json.customer.requested_product || '-' }}\n\n*ملخص المحادثة:*\n{{ $('Code in JavaScript1').item.json.customer.notes || '-' }}\n\n━━━━━━━━━━\nمحتاجك تتواصل مع العميل ده 🙏",
         "additionalFields": {}
       },
-      "id": "2b9635df-11a9-4e24-b7ea-6471aedb87d7",
-      "name": "تنبيه خدمة العملاء",
+      "id": "518538ef-90e6-4530-943c-39740faeaa7e",
+      "name": "تنبيه خدمة العملاء1",
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
       "position": [
-        3040,
-        304
+        2752,
+        1008
       ],
       "webhookId": "e052e462-c310-4d15-b99b-b2c7ea51fe50",
       "credentials": {
         "whatsAppApi": {
-          "id": "hE2SzViAOQ5OG9VZ",
-          "name": "Bot-28-7-token"
+          "id": "wsC2HZRDooYzmVlc",
+          "name": "WhatsApp account"
         }
       }
     },
@@ -615,8 +604,8 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "الرقم": "={{ $('استقبال رسالة واتساب').item.json.contacts[0].wa_id }}",
-            "الاسم": "={{ $('Code in JavaScript').item.json.customer.name }} ||{{ $('استقبال رسالة واتساب').item.json.contacts[0].profile.name }}"
+            "الرقم": "={{ $('استقبال رسالة واتساب1').item.json.contacts[0].wa_id }}",
+            "الاسم": "={{ $('Code in JavaScript1').item.json.customer.name }} ||{{ $('استقبال رسالة واتساب1').item.json.contacts[0].profile.name }}"
           },
           "matchingColumns": [
             "الرقم"
@@ -648,17 +637,17 @@
         },
         "options": {}
       },
-      "id": "3ab0e965-8893-46f7-97ef-4bfc8f565037",
-      "name": "تسجيل/تحديث بيانات العميل1",
+      "id": "295a8aed-4857-45c1-a86a-a0a7b5849d59",
+      "name": "تسجيل/تحديث بيانات العميل3",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        3264,
-        304
+        2976,
+        1008
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "oSBtMBSObRI3zOcS",
+          "id": "ANttlrbSNzxWqJ7h",
           "name": "Google Sheets account"
         }
       }
@@ -667,23 +656,23 @@
       "parameters": {
         "operation": "send",
         "phoneNumberId": "1128099343729694",
-        "recipientPhoneNumber": "={{ $('تجهيز الحالة').item.json.phone }}",
+        "recipientPhoneNumber": "={{ $('تجهيز الحالة1').item.json.phone }}",
         "textBody": "اقدر استقبل الرسايل المكتوبة بس حاليا يا فندم ❤️ تحب احول حضرتك لخدمة العملاء ولا نكمل ؟",
         "additionalFields": {}
       },
-      "id": "4349fcaf-375f-4305-85e2-61d0b95fa918",
-      "name": "رد على الوسائط (ريكورد/صورة)",
+      "id": "89408446-32cd-47a3-8993-ec55ce8d2434",
+      "name": "رد على الوسائط (ريكورد/صورة)1",
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
       "position": [
-        1184,
-        592
+        -64,
+        1200
       ],
       "webhookId": "e249c60f-1c48-47a8-b752-86aba90d7a68",
       "credentials": {
         "whatsAppApi": {
-          "id": "hE2SzViAOQ5OG9VZ",
-          "name": "Bot-28-7-token"
+          "id": "wsC2HZRDooYzmVlc",
+          "name": "WhatsApp account"
         }
       }
     },
@@ -695,17 +684,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        1440,
-        608
+        -1184,
+        1440
       ],
-      "id": "ec98a657-ce7b-4eaa-a067-cd60b614660e",
-      "name": "Groq Chat Model",
-      "credentials": {
-        "groqApi": {
-          "id": "D1sWRjavLbYjbOta",
-          "name": "Groq account"
-        }
-      }
+      "id": "99a56fe9-f585-49ec-af45-a592c4cbe8ec",
+      "name": "Groq Chat Model1"
     },
     {
       "parameters": {
@@ -721,248 +704,349 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        1120,
-        416
+        624,
+        1248
       ],
-      "id": "0dfb3665-9c88-4ed4-83f4-64d4a2c8dbce",
-      "name": "OpenAI Chat Model",
+      "id": "88d4cf3d-a28d-47f6-98ac-494b81ac8bdc",
+      "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
-          "id": "5h21YO9kltnLD5KN",
+          "id": "3UilwtVSqdK9Wswj",
           "name": "OpenAI account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "// تجميع رسائل العميل المتتالية قبل استدعاء الـ AI\nconst staticData = $getWorkflowStaticData('global');\nconst phone = $json.phone;\nconst now = Date.now();\n\nif (!staticData.pending) staticData.pending = {};\nif (!staticData.pending[phone]) staticData.pending[phone] = { messages: [], lastTs: 0 };\n\nstaticData.pending[phone].messages.push($json.agent_input);\nstaticData.pending[phone].lastTs = now;\n\nreturn [{ json: { ...$json, myTs: now } }];"
+      },
+      "id": "e138178e-d2ff-47d1-b912-4a7ac24fce1a",
+      "name": "تجميع الرسائل (Debounce - تسجيل)1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 6
+      },
+      "id": "3c9740c0-a4a3-4818-9959-476f714b142a",
+      "name": "انتظار قصير (Debounce Wait)1",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        1008
+      ],
+      "webhookId": "129b6964-ff04-4254-b603-4cfdb4f4d771"
+    },
+    {
+      "parameters": {
+        "jsCode": "// لو وصلت رسالة أحدث من نفس العميل أثناء الانتظار، أوقف هذا التنفيذ\n// وسيب آخر تنفيذ (الأحدث) هو اللي يجمع كل الرسائل ويكمل\nconst staticData = $getWorkflowStaticData('global');\nconst phone = $json.phone;\nconst myTs = $json.myTs;\nconst entry = staticData.pending ? staticData.pending[phone] : null;\n\nif (!entry || entry.lastTs !== myTs) {\n  return [];\n}\n\nconst combined = entry.messages.join('\\n');\ndelete staticData.pending[phone];\n\nreturn [{ json: { ...$json, agent_input: combined } }];"
+      },
+      "id": "59fc90e4-8896-408c-9220-be653d9dd2eb",
+      "name": "تجميع الرسائل (Debounce - تنفيذ)1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "1128099343729694",
+        "recipientPhoneNumber": "={{ $('تجهيز الحالة1').item.json.phone }}",
+        "messageType": "document",
+        "mediaLink": "https://drive.google.com/uc?export=download&id=101m4sOVxrPDqxIm7VATd3UdNvUdFn2x9",
+        "additionalFields": {
+          "mediaFilename": "منتجات فليكس -2026.pdf",
+          "mediaCaption": "*صور فعلية من منتجات فليكس* 🏭✨"
+        }
+      },
+      "id": "6f9cfca2-db08-4cc7-8a0a-e0d6fb6d3b7f",
+      "name": "pdf",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        1856,
+        944
+      ],
+      "webhookId": "c7102145-dd4e-4826-a903-ce07ccfe8213",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "wsC2HZRDooYzmVlc",
+          "name": "WhatsApp account"
+        }
+      },
+      "notes": "ارفع صورة الأسعار مرة واحدة في Meta واحفظ الـ media id هنا"
     }
   ],
   "pinData": {},
   "connections": {
-    "استقبال رسالة واتساب": {
+    "Safe Merge بيانات العميل": {
       "main": [
         [
           {
-            "node": "فحص المحظورين",
+            "node": "تسجيل/تحديث بيانات العميل2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "استقبال رسالة واتساب1": {
+      "main": [
+        [
+          {
+            "node": "فحص المحظورين1",
             "type": "main",
             "index": 0
           },
           {
-            "node": "فحص العميل",
+            "node": "فحص العميل1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "فحص المحظورين": {
+    "فحص المحظورين1": {
       "main": [
         [
           {
-            "node": "دمج الفحوصات",
+            "node": "دمج الفحوصات1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "فحص العميل": {
+    "فحص العميل1": {
       "main": [
         [
           {
-            "node": "دمج الفحوصات",
+            "node": "دمج الفحوصات1",
             "type": "main",
             "index": 1
           }
         ]
       ]
     },
-    "دمج الفحوصات": {
+    "دمج الفحوصات1": {
       "main": [
         [
           {
-            "node": "تجهيز الحالة",
+            "node": "تجهيز الحالة1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "تجهيز الحالة": {
+    "تجهيز الحالة1": {
       "main": [
         [
           {
-            "node": "توجيه (Switch)",
+            "node": "توجيه (Switch)1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "توجيه (Switch)": {
+    "توجيه (Switch)1": {
       "main": [
         [
           {
-            "node": "قفل - محظور/مقفول قبل كده",
+            "node": "قفل - محظور/مقفول قبل كده1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "AI Agent",
+            "node": "تجميع الرسائل (Debounce - تسجيل)1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "AI Agent",
+            "node": "تجميع الرسائل (Debounce - تسجيل)1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "رد على الوسائط (ريكورد/صورة)",
+            "node": "رد على الوسائط (ريكورد/صورة)1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent": {
+    "AI Agent1": {
       "main": [
         [
           {
-            "node": "Code in JavaScript",
+            "node": "Code in JavaScript1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "ذاكرة العميل (Memory)": {
+    "ذاكرة العميل (Memory)1": {
       "ai_memory": [
         [
           {
-            "node": "AI Agent",
+            "node": "AI Agent1",
             "type": "ai_memory",
             "index": 0
           }
         ]
       ]
     },
-    "Code in JavaScript": {
+    "Code in JavaScript1": {
       "main": [
         [
           {
-            "node": "إرسال رد العميل",
+            "node": "إرسال رد العميل1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "إرسال رد العميل": {
+    "إرسال رد العميل1": {
       "main": [
         [
           {
-            "node": "IF محتاج صورة أسعار",
+            "node": "IF محتاج صورة أسعار1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF محتاج صورة أسعار": {
+    "IF محتاج صورة أسعار1": {
       "main": [
         [
           {
-            "node": "إرسال صورة الأسعار",
+            "node": "إرسال صورة الأسعار1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "IF محتاج زرار تحويل",
+            "node": "Safe Merge بيانات العميل",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "إرسال صورة الأسعار": {
+    "إرسال صورة الأسعار1": {
       "main": [
         [
           {
-            "node": "IF محتاج زرار تحويل",
+            "node": "pdf",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF محتاج زرار تحويل": {
+    "تسجيل/تحديث بيانات العميل2": {
       "main": [
         [
           {
-            "node": "تسجيل/تحديث بيانات العميل",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "تسجيل/تحديث بيانات العميل",
+            "node": "IF لازم تحويل فعلي1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "تسجيل/تحديث بيانات العميل": {
+    "IF لازم تحويل فعلي1": {
       "main": [
         [
           {
-            "node": "IF لازم تحويل فعلي",
+            "node": "تنبيه خدمة العملاء1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF لازم تحويل فعلي": {
+    "تنبيه خدمة العملاء1": {
       "main": [
         [
           {
-            "node": "تنبيه خدمة العملاء",
+            "node": "تسجيل/تحديث بيانات العميل3",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "تنبيه خدمة العملاء": {
-      "main": [
-        [
-          {
-            "node": "تسجيل/تحديث بيانات العميل1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Groq Chat Model": {
-      "ai_languageModel": [
-        []
-      ]
-    },
-    "OpenAI Chat Model": {
+    "OpenAI Chat Model1": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent",
+            "node": "AI Agent1",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "تجميع الرسائل (Debounce - تسجيل)1": {
+      "main": [
+        [
+          {
+            "node": "انتظار قصير (Debounce Wait)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "انتظار قصير (Debounce Wait)1": {
+      "main": [
+        [
+          {
+            "node": "تجميع الرسائل (Debounce - تنفيذ)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "تجميع الرسائل (Debounce - تنفيذ)1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pdf": {
+      "main": [
+        [
+          {
+            "node": "Safe Merge بيانات العميل",
+            "type": "main",
             "index": 0
           }
         ]
@@ -975,12 +1059,12 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "89d67c4e-bd0c-4da1-b18c-c33d331c6b9a",
+  "versionId": "2ff2a7eb-f3b5-4644-b391-272ede9ec383",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "386f2c02b98a7db878e091f5301257bd72a4e31b81c78299d37882fd0b5ae612"
+    "instanceId": "71e10080ecc53af29838f8524a5f6531f4fce5cdfe97145099babb9211ca7db2"
   },
   "nodeGroups": [],
-  "id": "B7jmyzagCYglUyte",
+  "id": "dRVlcI0QOlMS2Qox",
   "tags": []
 }
